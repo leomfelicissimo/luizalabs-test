@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import RepositoryProvider from 'src/repository/repository.provider';
-import { UsersSchema } from 'src/repository/repository.types';
+import RepositoryProvider from '../repository/repository.provider';
+import { UsersSchema } from '../repository/repository.types';
 
 @Injectable()
 export class UsersService {
@@ -10,11 +10,15 @@ export class UsersService {
 
   // The right approach here is to use a bcrypt or similar to hash the password
   // and match the hash.
-  findByEmailAndPassword(email: string, password: string) {
-    this.logger.log(`Finding a username with ${email}`);
+  findByClientIdAndPassword(clientId: string, password: string) {
+    this.logger.log(`Finding a user with ${clientId}`);
     return this.repository.findOne<UsersSchema>('users', {
-      email,
+      clientId,
       password
     });
+  }
+
+  create(user: UsersSchema) {
+    return this.repository.create<UsersSchema>('users', user);
   }
 }

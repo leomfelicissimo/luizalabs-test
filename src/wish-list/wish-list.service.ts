@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { AddToWishListDTO } from '../customers/dto/add-to-wish-list.dto';
 import { CustomerDoesNotExistsError, ProductAlreadyExistsInWishlistError, WishListAlreadyExists } from 'src/common/error';
 import ProductService from 'src/product/product.service';
-import RepositoryProvider from 'src/repository/repository.provider';
-import { CustomersSchema, WishListsSchema } from 'src/repository/repository.types';
+import RepositoryProvider from '../repository/repository.provider';
+import { CustomersSchema, WishListsSchema } from '../repository/repository.types';
 
 @Injectable()
 export class WishListService {
@@ -65,7 +65,17 @@ export class WishListService {
   }
 
   findByCustomerId(customerId: string) {
-    return this.repository.findOne<WishListsSchema>('wishlists', { customerId });
+    const wishlist = this.repository.findOne<WishListsSchema>('wishlists', { customerId });
+    const productsView = wishlist.products.map((product) => {
+      const outputProduct = Object.assign({}, product);
+      if (!product.reviewScore) {
+        delete outputProduct.reviewScore; 
+      }
+      
+      return outputProduct;
+    });
+
+    return Object.assign(wishlist, { products: productsView });
   }
 
   findOne(id: string) {

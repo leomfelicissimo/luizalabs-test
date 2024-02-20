@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
-import RepositoryProvider from 'src/repository/repository.provider';
-import { CustomersSchema, WishListsSchema } from 'src/repository/repository.types';
+import RepositoryProvider from '../repository/repository.provider';
+import { CustomersSchema, WishListsSchema } from '../repository/repository.types';
 
 export class CustomerAlreadyExists extends Error {
   constructor() {

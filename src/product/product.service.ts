@@ -1,8 +1,8 @@
 import ProductClient from "./clients/product.client";
 import ProductDTO from "./dto/product-client.dto";
 import { Injectable, Logger } from "@nestjs/common";
-import { ProductsSchema } from "src/repository/repository.types";
-import RepositoryProvider from "src/repository/repository.provider";
+import { ProductsSchema } from "../repository/repository.types";
+import RepositoryProvider from "../repository/repository.provider";
 
 @Injectable()
 export default class ProductService {
@@ -11,12 +11,12 @@ export default class ProductService {
   constructor(private readonly repository: RepositoryProvider,
     private readonly productClient: ProductClient) { }
 
-  async getProductDetail(externalId: string): Promise<ProductsSchema> {
-    const product = this.repository.findOne<ProductsSchema>('products', { externalId });
+  async getProductDetail(id: string): Promise<ProductsSchema> {
+    const product = this.repository.findOne<ProductsSchema>('products', { id });
     if (product) {
       return Promise.resolve(product);
     } else {
-      return this.findAndSaveLocal(externalId, 1);
+      return this.findAndSaveLocal(id, 1);
     }
   }
 
@@ -26,16 +26,17 @@ export default class ProductService {
     let foundProduct: ProductsSchema;
 
     products.forEach(product => {
-      this.repository.create<ProductsSchema>('products', {
+      const created  = this.repository.create<ProductsSchema>('products', {
         brand: product.brand,
-        externalId: product.id,
+        id: product.id,
         image: product.image,
         price: product.price,
         title: product.title,
-      });
+        reviewScore: product.reviewScore ? Number.parseFloat(product.reviewScore) : null,
+      }, false);
 
       if (product.id === id) {
-        foundProduct = product;
+        foundProduct = created;
       }
     });
 

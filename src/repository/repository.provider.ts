@@ -17,14 +17,14 @@ export default class RepositoryProvider {
     this.initializeRepository();
   }
 
-  create<T>(tableName: string, values: T): T {
-    this.logger.log(`Inserting into ${tableName} values: ${values}`);
+  create<T>(tableName: string, value: T, mustGenerateId = true): T {
+    this.logger.log(`Inserting into ${tableName} values: ${value}`);
     const table: Map<string, T> = this.database[tableName];
-    const id = randomUUID();
-    table.set(id, values);
+    const id = mustGenerateId ? randomUUID() : value['id'];
+    table.set(id, value);
 
     this.logger.log(`Imserted new line. Table rows: ${table.size}.`);
-    return Object.assign(values, { id })
+    return Object.assign(value, { id })
   }
 
   delete<T>(tableName: string, key) {
@@ -79,15 +79,10 @@ export default class RepositoryProvider {
 
   private initializeRepository() {
     this.create<UsersSchema>('users', {
-      email: 'admin@admin.com',
+      clientId: 'luizalabs',
       password: '12345678',
       role: UserRole.ADMIN,
-    });
-
-    this.create<UsersSchema>('users', {
-      email: 'leo@leo.com',
-      password: '87654321',
-      role: UserRole.CONSUMER,
+      description: 'Admin client id',
     });
   }
 }

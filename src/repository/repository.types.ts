@@ -12,21 +12,22 @@ export type WishListsSchema = {
 
 export type ProductsSchema = {
   id?: string;
-  externalId: string;
   price: number;
   title: string;
   brand: string;
   image: string;
+  reviewScore: number;
 }
 
 export enum UserRole {
-  ADMIN,
-  CONSUMER,
+  ADMIN = 'ADMIN',
+  DEFAULT = 'DEFAULT',
 }
 
 export type UsersSchema = {
   id?: string;
-  email: string;
+  clientId: string;
+  description: string;
   password: string;
   role: UserRole;
 }

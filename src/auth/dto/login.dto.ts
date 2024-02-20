@@ -1,4 +1,4 @@
 export default class LoginDTO {
-  email: string;
+  clientId: string;
   password: string;
 }
