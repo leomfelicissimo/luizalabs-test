@@ -1,31 +1,32 @@
-import DatabaseProvider, { ProductTable, WishListTable } from "src/database/database-provider"
 import ProductClient from "./clients/product.client";
 import ProductDTO from "./dto/product-client.dto";
 import { Injectable, Logger } from "@nestjs/common";
+import { ProductsSchema } from "src/repository/repository.types";
+import RepositoryProvider from "src/repository/repository.provider";
 
 @Injectable()
 export default class ProductService {
   private readonly logger = new Logger(ProductService.name);
 
-  constructor(private readonly database: DatabaseProvider,
+  constructor(private readonly repository: RepositoryProvider,
     private readonly productClient: ProductClient) { }
 
-  async getProductDetail(externalId: string): Promise<ProductDTO> {
-    const products = this.database.selectWhere<ProductTable>('products', { externalId });
-    if (products.length > 0) {
-      return Promise.resolve(products.at(0) as ProductDTO);
+  async getProductDetail(externalId: string): Promise<ProductsSchema> {
+    const product = this.repository.findOne<ProductsSchema>('products', { externalId });
+    if (product) {
+      return Promise.resolve(product);
     } else {
       return this.findAndSaveLocal(externalId, 1);
     }
   }
 
-  private async findAndSaveLocal(id: string, page: number): Promise<ProductDTO> {
+  private async findAndSaveLocal(id: string, page: number): Promise<ProductsSchema> {
     this.logger.log(`Finding product ${id} on page ${page}`);
     const products = await this.productClient.findProducts(page);
-    let foundProduct: ProductDTO;
+    let foundProduct: ProductsSchema;
 
     products.forEach(product => {
-      this.database.insertInto<ProductTable>('products', {
+      this.repository.create<ProductsSchema>('products', {
         brand: product.brand,
         externalId: product.id,
         image: product.image,

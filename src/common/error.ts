@@ -9,3 +9,9 @@ export class CustomerDoesNotExistsError extends Error {
     super('Customer does not exist!');
   }
 }
+
+export class WishListAlreadyExists extends Error {
+  constructor() {
+    super('The customer cannot have more than one wishlist.');
+  }
+}

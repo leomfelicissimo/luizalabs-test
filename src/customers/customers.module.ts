@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { CustomersService } from './customers.service';
-import { CustomersController } from './customer.controller';
-import DatabaseProvider from 'src/database/database-provider';
-import { DatabaseModule } from 'src/database/database.module';
+import { CustomersController } from './customers.controller';
 import { ProductModule } from 'src/product/product.module';
+import { RepositoryModule } from 'src/repository/repository.module';
+import { WishListModule } from 'src/wish-list/wish-list.module';
 
 @Module({
-  imports: [DatabaseModule, ProductModule],
+  imports: [RepositoryModule, ProductModule, WishListModule],
   controllers: [CustomersController],
   providers: [CustomersService],
 })

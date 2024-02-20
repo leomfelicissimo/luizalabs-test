@@ -1,35 +1,37 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CreateWishListDto } from './dto/create-wish-list.dto';
-import { UpdateWishListDto } from './dto/update-wish-list.dto';
-import DatabaseProvider, { CustomerTable, WishListTable } from 'src/database/database-provider';
-import { CustomerDoesNotExistsError, ProductAlreadyExistsInWishlistError } from 'src/common/error';
+import { AddToWishListDTO } from '../customers/dto/add-to-wish-list.dto';
+import { CustomerDoesNotExistsError, ProductAlreadyExistsInWishlistError, WishListAlreadyExists } from 'src/common/error';
 import ProductService from 'src/product/product.service';
+import RepositoryProvider from 'src/repository/repository.provider';
+import { CustomersSchema, WishListsSchema } from 'src/repository/repository.types';
 
 @Injectable()
 export class WishListService {
   private readonly logger = new Logger(WishListService.name);
   constructor(
-    private readonly database: DatabaseProvider,
+    private readonly repository: RepositoryProvider,
     private readonly productService: ProductService,
   ) { }
 
-  async create(createWishListDto: CreateWishListDto) {
-    const { customerId, productId } = createWishListDto;
+  create(customerId: string) {
+    const wishlist = this.repository.findOne<WishListsSchema>('wishlists', { customerId });
+    if (!wishlist) {
+      return this.repository.create<WishListsSchema>('wishlists', {
+        customerId,
+        products: [],
+      });
+    } else {
+      throw new WishListAlreadyExists();
+    }
+  }
+
+  async addProduct(customerId: string, productId: string) {
     this.logger.log(`Adding product ${productId} to ${customerId} wish list.`)
 
-    const customer = this.database.selectById<CustomerTable>('customers', customerId);
-    if (!customer) {
-      throw new CustomerDoesNotExistsError();
-    }
+    const wishlist = this.findOrCreate(customerId);
+    const hasProduct = wishlist.products.find(({ id }) => id === productId);
 
-    this.logger.log('Customer exists! Identifying wishlist');
-
-    const products = this.database.selectWhere<WishListTable>('wishlists', {
-      customerId: customerId,
-      productId: productId,
-    });
-
-    if (products.length > 0) {
+    if (hasProduct) {
       throw new ProductAlreadyExistsInWishlistError();
     }
 
@@ -37,48 +39,45 @@ export class WishListService {
 
     const productDetail = await this.productService.getProductDetail(productId);
 
-    return this.database.insertInto<WishListTable>('wishlists', {
-      customerId,
-      productId,
-      productBrand: productDetail.brand,
-      productPrice: productDetail.price,
-      productTitle: productDetail.title,
-      productImage: productDetail.image
+    return this.repository.update<WishListsSchema>('wishlists', wishlist.id, {
+      customerId: customerId,
+      products: wishlist.products.concat([productDetail]),
     });
   }
 
+  private findOrCreate(customerId: string) {
+    let wishlist = this.repository.findOne<WishListsSchema>('wishlists', { customerId });
+    
+    if (!wishlist) {
+      const customer = this.repository.findById<CustomersSchema>('customers', customerId);
+      if (!customer) {
+        throw new CustomerDoesNotExistsError();  
+      } else {
+        wishlist = this.create(customerId);
+      }
+    }
+
+    return wishlist;
+  }
+
   findAll() {
-    return this.database.select('wishlists');
+    return this.repository.findAll('wishlists');
   }
 
   findByCustomerId(customerId: string) {
-    const customer = this.database.selectById<CustomerTable>('customers', customerId);
-    this.logger.log('Found customer!', customer);
-    const wishlist = this.database.selectWhere<WishListTable>('wishlists', { customerId });
-    return {
-      customer: {
-        id: customerId,
-        name: customer.name,
-      },
-      products: wishlist.map((item) => ({
-        id: item.id,
-        price: item.productPrice,
-        title: item.productTitle,
-        image: item.productImage,
-        brand: item.productBrand,
-      })),
-    };
+    return this.repository.findOne<WishListsSchema>('wishlists', { customerId });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} wishList`;
+  findOne(id: string) {
+    return this.repository.findById('wishlists', id);
   }
 
-  update(id: number, updateWishListDto: UpdateWishListDto) {
-    return `This action updates a #${id} wishList`;
-  }
+  removeProduct(customerId: string, productId: string) {
+    const wishlist = this.repository.findOne<WishListsSchema>('wishlists', { customerId });
 
-  remove(id: number) {
-    return `This action removes a #${id} wishList`;
+    return this.repository.update<WishListsSchema>('wishlists', wishlist.id, {
+      customerId: customerId,
+      products: wishlist.products.filter(({ id }) => id !== productId),
+    });
   }
 }

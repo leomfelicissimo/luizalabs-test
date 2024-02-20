@@ -1,48 +1,23 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { randomUUID } from "crypto";
-
-export type CustomerTable = {
-  id?: string;
-  name: string;
-  email: string;
-}
-
-export type WishListTable = {
-  id?: string;
-  customerId: string;
-  productId: string;
-  productTitle: string;
-  productPrice: number;
-  productBrand: string;
-  productImage: string;
-}
-
-export type ProductTable = {
-  id?: string;
-  externalId: string;
-  price: number;
-  title: string;
-  brand: string;
-  image: string;
-}
-
-type DatabaseDefinition = {
-  customers: Map<string, CustomerTable>,
-  wishlists: Map<string, WishListTable>,
-  products: Map<string, ProductTable>,
-};
+import { RepositoryDefinition, UserRole, UsersSchema } from "./repository.types";
 
 @Injectable()
-export default class DatabaseProvider {
-  private readonly logger = new Logger(DatabaseProvider.name);
+export default class RepositoryProvider {
+  private readonly logger = new Logger(RepositoryProvider.name);
 
-  private readonly database: DatabaseDefinition = {
+  private readonly database: RepositoryDefinition = {
     customers: new Map(),
     wishlists: new Map(),
     products: new Map(),
+    users: new Map(),
   };
 
-  insertInto<T>(tableName: string, values: T): T {
+  constructor() {
+    this.initializeRepository();
+  }
+
+  create<T>(tableName: string, values: T): T {
     this.logger.log(`Inserting into ${tableName} values: ${values}`);
     const table: Map<string, T> = this.database[tableName];
     const id = randomUUID();
@@ -52,7 +27,7 @@ export default class DatabaseProvider {
     return Object.assign(values, { id })
   }
 
-  deleteFrom<T>(tableName: string, key) {
+  delete<T>(tableName: string, key) {
     this.database[tableName].delete(key);
   }
 
@@ -70,7 +45,7 @@ export default class DatabaseProvider {
     return table.has(id);
   }
 
-  select<T>(tableName: string): T[] {
+  findAll<T>(tableName: string): T[] {
     const table: Map<string, T> = this.database[tableName];
     const result: T[] = [];
     table.forEach(item => result.push(item));
@@ -82,21 +57,37 @@ export default class DatabaseProvider {
     return tableData.filter(item => item[field] === value);
   }
 
-  selectById<T>(tableName: string, id: string): T {
+  findById<T>(tableName: string, id: string): T {
     const table: Map<string, T> = this.database[tableName];
     return table.get(id);
   }
 
-  selectWhere<T>(tableName: string, filter: any): T[] {
+  findOne<T>(tableName: string, filter: any): T {
+    const result = this.findMany<T>(tableName, filter);
+    return result.at(0);
+  }
+
+  findMany<T>(tableName: string, filter: any): T[] {
     const table: Map<string, T> = this.database[tableName];
     let filtered = Array.from(table.values());
-    this.logger.log(filtered);
     Object.keys(filter).forEach(key => {
       filtered = this.filterBy(filtered, key, filter[key])
     });
 
-    this.logger.log(`Filtered items: ${filtered}`);
-
     return filtered;
+  }
+
+  private initializeRepository() {
+    this.create<UsersSchema>('users', {
+      email: 'admin@admin.com',
+      password: '12345678',
+      role: UserRole.ADMIN,
+    });
+
+    this.create<UsersSchema>('users', {
+      email: 'leo@leo.com',
+      password: '87654321',
+      role: UserRole.CONSUMER,
+    });
   }
 }
