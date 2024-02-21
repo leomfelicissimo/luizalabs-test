@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
 import { CustomersService } from './customers.service';
 import { CustomersController } from './customers.controller';
-import { ProductModule } from 'src/product/product.module';
 import { RepositoryModule } from '../repository/repository.module';
-import { WishListModule } from 'src/wish-list/wish-list.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from 'src/auth/auth.module';
+import { ProductModule } from '../product/product.module';
+import { WishListModule } from '../wish-list/wish-list.module';
 
 @Module({
   imports: [

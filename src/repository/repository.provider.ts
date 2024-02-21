@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { randomUUID } from "crypto";
-import { RepositoryDefinition, UserRole, UsersSchema } from "./repository.types";
+import { CustomersSchema, ProductsSchema, RepositoryDefinition, RepositorySchemaName, UserRole, UsersSchema, WishListsSchema } from "./repository.types";
 
 @Injectable()
 export default class RepositoryProvider {
@@ -17,22 +17,26 @@ export default class RepositoryProvider {
     this.initializeRepository();
   }
 
-  create<T>(tableName: string, value: T, mustGenerateId = true): T {
-    this.logger.log(`Inserting into ${tableName} values: ${value}`);
-    const table: Map<string, T> = this.database[tableName];
+  private getSchema(schema: RepositorySchemaName) {
+    return this.database[schema.toString()];
+  }
+
+  create<T>(schema: RepositorySchemaName, value: T, mustGenerateId = true): T {
+    this.logger.log(`Inserting into ${schema} values: ${value}`);
+    const table: Map<string, T> = this.getSchema(schema);
     const id = mustGenerateId ? randomUUID() : value['id'];
     table.set(id, value);
 
-    this.logger.log(`Imserted new line. Table rows: ${table.size}.`);
+    this.logger.log(`Inserted new line. Table rows: ${table.size}.`);
     return Object.assign(value, { id })
   }
 
-  delete<T>(tableName: string, key) {
-    this.database[tableName].delete(key);
+  delete<T>(schema: RepositorySchemaName, key) {
+    this.getSchema(schema).delete(key);
   }
 
-  update<T extends object>(tableName: string, id: string, values: T): T {
-    const table: Map<string, T> = this.database[tableName];
+  update<T extends object>(schema: RepositorySchemaName, id: string, values: T): T {
+    const table: Map<string, T> = this.getSchema(schema);
     const item = table.get(id);
     const updated = Object.assign(item, values);
     table.set(id, updated);
@@ -40,13 +44,13 @@ export default class RepositoryProvider {
     return updated;
   }
 
-  exists<T>(tableName: string, id: string) {
-    const table: Map<string, T> = this.database[tableName];
+  exists<T>(schema: RepositorySchemaName, id: string) {
+    const table: Map<string, T> = this.getSchema(schema);
     return table.has(id);
   }
 
-  findAll<T>(tableName: string): T[] {
-    const table: Map<string, T> = this.database[tableName];
+  findAll<T>(schema: RepositorySchemaName): T[] {
+    const table: Map<string, T> = this.getSchema(schema);
     const result: T[] = [];
     table.forEach(item => result.push(item));
 
@@ -57,18 +61,18 @@ export default class RepositoryProvider {
     return tableData.filter(item => item[field] === value);
   }
 
-  findById<T>(tableName: string, id: string): T {
-    const table: Map<string, T> = this.database[tableName];
+  findById<T>(schema: RepositorySchemaName, id: string): T {
+    const table: Map<string, T> = this.getSchema(schema);
     return table.get(id);
   }
 
-  findOne<T>(tableName: string, filter: any): T {
-    const result = this.findMany<T>(tableName, filter);
+  findOne<T>(schema: RepositorySchemaName, filter: any): T {
+    const result = this.findMany<T>(schema, filter);
     return result.at(0);
   }
 
-  findMany<T>(tableName: string, filter: any): T[] {
-    const table: Map<string, T> = this.database[tableName];
+  findMany<T>(schema: RepositorySchemaName, filter: any): T[] {
+    const table: Map<string, T> = this.getSchema(schema);
     let filtered = Array.from(table.values());
     Object.keys(filter).forEach(key => {
       filtered = this.filterBy(filtered, key, filter[key])

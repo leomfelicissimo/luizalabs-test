@@ -32,9 +32,11 @@ export type UsersSchema = {
   role: UserRole;
 }
 
+export type RepositorySchemaName = 'customers' | 'wishlists' | 'products' | 'users';
+
 export type RepositoryDefinition = {
-  customers: Map<string, CustomersSchema>,
-  wishlists: Map<string, WishListsSchema>,
-  products: Map<string, ProductsSchema>,
-  users: Map<string, UsersSchema>,
+  customers: Map<RepositorySchemaName, CustomersSchema>,
+  wishlists: Map<RepositorySchemaName, WishListsSchema>,
+  products: Map<RepositorySchemaName, ProductsSchema>,
+  users: Map<RepositorySchemaName, UsersSchema>,
 };

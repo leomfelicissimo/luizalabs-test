@@ -3,10 +3,10 @@ import { CustomerAlreadyExists, CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { Response } from 'express';
-import { WishListService } from 'src/wish-list/wish-list.service';
 import { AddToWishListDTO } from './dto/add-to-wish-list.dto';
 import { RemoveFromWishListDTO } from './dto/remove-from-wish-list.dto';
-import AuthGuard from 'src/auth/auth.guard';
+import AuthGuard from '../auth/auth.guard';
+import { WishListService } from '../wish-list/wish-list.service';
 
 @Controller('customers')
 export class CustomersController {

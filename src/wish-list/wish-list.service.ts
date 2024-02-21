@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AddToWishListDTO } from '../customers/dto/add-to-wish-list.dto';
-import { CustomerDoesNotExistsError, ProductAlreadyExistsInWishlistError, WishListAlreadyExists } from 'src/common/error';
-import ProductService from 'src/product/product.service';
 import RepositoryProvider from '../repository/repository.provider';
 import { CustomersSchema, WishListsSchema } from '../repository/repository.types';
+import { WishListAlreadyExists, ProductAlreadyExistsInWishlistError, CustomerDoesNotExistsError } from '../common/error';
+import ProductService from '../product/product.service';
 
 @Injectable()
 export class WishListService {
