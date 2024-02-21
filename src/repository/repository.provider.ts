@@ -22,7 +22,8 @@ export default class RepositoryProvider {
   }
 
   create<T>(schema: RepositorySchemaName, value: T, mustGenerateId = true): T {
-    this.logger.log(`Inserting into ${schema} values: ${value}`);
+    this.logger.log(`Inserting into ${schema}`);
+    this.logger.debug(value);
     const table: Map<string, T> = this.getSchema(schema);
     const id = mustGenerateId ? randomUUID() : value['id'];
     table.set(id, value);

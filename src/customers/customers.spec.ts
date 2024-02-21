@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { ConsoleLogger, INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { JwtService } from '@nestjs/jwt';
 import { CustomersModule } from './customers.module';
@@ -23,14 +23,6 @@ describe('Customer Controller Integration Tests', () => {
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [CustomersModule],
-      providers: [{
-        provide: 'RepositoryProvider',
-        useFactory: () => {
-          const repository = new RepositoryProvider();
-          repository.create<CustomersSchema>('customers', { name: 'test', email: 'test@test.com'});
-          return repository;
-        }
-      }]
     })
     .overrideProvider(JwtService)
     .useClass(JwtServiceMock)
@@ -39,6 +31,7 @@ describe('Customer Controller Integration Tests', () => {
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
+    //app.useLogger(new ConsoleLogger());
   });
 
   it('should create a new customer', () => {
@@ -49,11 +42,81 @@ describe('Customer Controller Integration Tests', () => {
       .expect(201);
   });
 
-  it('should not allow duplicated emails', () => {
-    return request(app.getHttpServer())
+  it('should not allow duplicated emails', async () => {
+    await request(app.getHttpServer())
       .post('/customers')
       .set('Authorization', 'Bearer defaulttoken123')
-      .send({ name: 'test', email: 'test@test.com' })
+      .send({ name: 'test', email: 'test@test.com' });
+    
+    const response = await request(app.getHttpServer())
+      .post('/customers')
+      .set('Authorization', 'Bearer defaulttoken123')
+      .send({ name: 'test', email: 'test@test.com' });
+    
+    expect(response.status).toEqual(400);
+  });
+
+  it('should return all customers', async () => {
+    await request(app.getHttpServer())
+      .post('/customers')
+      .set('Authorization', 'Bearer defaulttoken123')
+      .send({ name: 'test', email: 'test@test.com' });
+
+    await request(app.getHttpServer())
+      .post('/customers')
+      .set('Authorization', 'Bearer defaulttoken123')
+      .send({ name: 'test2', email: 'test2@test.com' });
+    
+    const response = await request(app.getHttpServer())
+      .get('/customers')
+      .set('Authorization', 'Bearer defaulttoken123');
+
+    expect(response.body).toHaveLength(2);
+  });
+
+  it('should add product to customer\'s wishlist', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/customers')
+      .set('Authorization', 'Bearer defaulttoken123')
+      .send({ name: 'test', email: 'test@test.com' });
+
+    await request(app.getHttpServer())
+      .put(`/customers/${response.body.id}/wishlists`)
+      .set('Authorization', 'Bearer defaulttoken123')
+      .send({ productId: '1bf0f365-fbdd-4e21-9786-da459d78dd1f' });
+
+    const wishlistResponse = await request(app.getHttpServer())
+      .get(`/customers/${response.body.id}/wishlists`)
+      .set('Authorization', 'Bearer defaulttoken123')
+      .send({ name: 'test2', email: 'test2@test.com' });
+
+    expect(wishlistResponse.body.products).toHaveLength(1);
+    expect(wishlistResponse.body.products.at(0).id).toEqual('1bf0f365-fbdd-4e21-9786-da459d78dd1f');
+  });
+
+  it('should not add a duplicated product in wishlist', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/customers')
+      .set('Authorization', 'Bearer defaulttoken123')
+      .send({ name: 'test', email: 'test@test.com' });
+
+    await request(app.getHttpServer())
+      .put(`/customers/${response.body.id}/wishlists`)
+      .set('Authorization', 'Bearer defaulttoken123')
+      .send({ productId: '1bf0f365-fbdd-4e21-9786-da459d78dd1f' });
+
+    return request(app.getHttpServer())
+      .put(`/customers/${response.body.id}/wishlists`)
+      .set('Authorization', 'Bearer defaulttoken123')
+      .send({ productId: '1bf0f365-fbdd-4e21-9786-da459d78dd1f' })
+      .expect(400);
+  });
+
+  it('should return a error if customer does not exist', async () => {
+    return request(app.getHttpServer())
+      .put(`/customers/123/wishlists`)
+      .set('Authorization', 'Bearer defaulttoken123')
+      .send({ productId: '1bf0f365-fbdd-4e21-9786-da459d78dd1f' })
       .expect(400);
   });
 });

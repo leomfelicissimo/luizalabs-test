@@ -36,8 +36,11 @@ export class WishListService {
     }
 
     this.logger.log('Adding product to new wishlist!');
+    this.logger.debug(productId);
 
+    this.logger.log('Getting product detail of product.');
     const productDetail = await this.productService.getProductDetail(productId);
+    this.logger.debug(productDetail);
 
     return this.repository.update<WishListsSchema>('wishlists', wishlist.id, {
       customerId: customerId,

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res, HttpStatus, Put, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, HttpStatus, Put, Query, UseGuards, Logger } from '@nestjs/common';
 import { CustomerAlreadyExists, CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
@@ -10,6 +10,8 @@ import { WishListService } from '../wish-list/wish-list.service';
 
 @Controller('customers')
 export class CustomersController {
+  private readonly logger = new Logger(CustomersController.name);
+
   constructor(
     private readonly customersService: CustomersService,
     private readonly wishListService: WishListService
@@ -75,6 +77,8 @@ export class CustomersController {
     @Res() res
   ) {
     try {
+      this.logger.log('New request for add product to wishlist');
+      this.logger.debug(addToWishList);
       const added = await this.wishListService.addProduct(id, addToWishList.productId);
       res.status(HttpStatus.OK).json(added);
     } catch (e) {
