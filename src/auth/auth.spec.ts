@@ -21,4 +21,11 @@ describe('Auth Controller Integration Tests', () => {
       .send({ clientId: 'a', password: 'b' })
       .expect(401);
   });
+
+  it('should do login sucessfully', () => {
+    return request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ clientId: 'luizalabs', password: '12345678' })
+      .expect(200);
+  });
 });
