@@ -5,6 +5,28 @@
 
 This application was created as part of the Luiza Labs's interview process.
 
+## Solution
+
+### Nest Framework and Database
+
+It uses NestJs and a proprietary data structure of database. I had an idea of creating a 
+database like data structure map-based. I hope you like, because I really liked it.
+
+### Typescript
+I'm using typescript generics concepts (that I bring com C# and Java experience), 
+the "repo" pattern concepts (a quite different of repository), that I bring from my Elixir experience.
+
+### Products scraping and caching
+
+For searching products I'm scraping the products search, page by page and building a local cache with the products.
+I'm doing it, because the GET products/{id} was returning 404 for all product ids.
+The trade-off is: If a product got updated, we will not get this updated data. For resolve this, we needed a TTL, and
+reseting the products what could be a problem because going page by page is slow.
+
+The best approach here, is to receive a product update event by webhook or AMQP and update the local database.
+
+But I believe that this would be too much for the interview purposes.
+
 ## Installation
 
 ```bash
