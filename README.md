@@ -58,7 +58,7 @@ directory named: *insomnia-collection.json*
 
 I've tried to use Postman, but sorry, my postman was buggy :'(
 
-### Login as Admin to create new users
+### 1. Login as Admin to create new users
 
 The admin user is accountable for creating API users. The admin credentials is hardcoded for now.
 But the best approach would be to have it in a configuration, allowing the password to be changed.
@@ -75,7 +75,7 @@ curl --request POST \
 }'
 ```
 
-### Use your Admin token to create the API user
+### 2. Use your Admin token to create the API user
 
 Now, you will create the API user, I thought it as a API Gateway credentials, where for each app you
 would have a credential.
@@ -93,7 +93,7 @@ curl --request POST \
 }'
 ```
 
-### Login with your created API user
+### 3. Login with your created API user
 
 Using this request you will be able to access for using the other endpoints. Admin should be able to do it as well.
 
@@ -109,7 +109,7 @@ curl --request POST \
 }'
 ```
 
-### Create a customer using the token of your API user
+### 4. Create a customer using the token of your API user
 
 This endpoint will return the customer data with ID, please, store the id for use it for customer handling calls.
 
@@ -125,7 +125,7 @@ curl --request POST \
 }'
 ```
 
-### Add a product to a customer wishlist
+### 5. Add a product to a customer wishlist
 
 A wishlist is always created along side the customer creation. For now the customer cannot have more than 1 wishlist.
 I've tried to keep a semantic RESTful concept. Where the wishlist is not a isolated domain, but a subdomain of User domain.
@@ -142,7 +142,7 @@ curl --request PUT \
 }'
 ```
 
-### Check the wishlist
+### 6. Check the wishlist
 
 You could use this request, for checking the customers wishlist. Actually only one wishlist will be returned.
 
@@ -153,7 +153,7 @@ curl --request GET \
   --header 'User-Agent: insomnia/8.6.1'
 ```
 
-### Remove a product from wishlist
+### 7. Remove a product from wishlist
 If you want to remove a product from wish list, use this request.
 
 ```bash
@@ -167,7 +167,7 @@ curl --request DELETE \
 }'
 ```
 
-### Delete a customer
+### (Additional) Delete a customer
 If you want to remove a customer, use this.
 
 ```bash
@@ -181,7 +181,7 @@ curl --request DELETE \
 }'
 ```
 
-### Get a customer
+### (Additional) Get a customer
 Use this, to get details of customer by id
 
 ```bash
@@ -191,7 +191,7 @@ curl --request GET \
   --header 'User-Agent: insomnia/8.6.1'
 ```
 
-### Get a customer
+### (Additional) Get a customer
 Use this, to see all customers on database. Here we could add a paged search.
 But is simple for now.
 
